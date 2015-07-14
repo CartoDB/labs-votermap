@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <!--Edit the title of the page-->
+    <title>Voters map</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,500,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/themes/css/cartodb.css" />
+    <!--[if lte IE 8]>
+      <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/themes/css/cartodb.ie.css" />
+    <![endif]-->
+    <!--Switch between the different themes changing the stylesheet below - light-theme.css |dark-theme.css -->
+    <link rel="stylesheet" href="css/light-theme.css">
+    <link rel="stylesheet" href="css/makeitresponsive.css">
+  </head>
+  <body>
+  <style>
+    body  { 
+      font-family: 'Segoe Regular', "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    .fsm {
+      font-size:18px;
+    }
+
+    .radio, .checkbox {
+      display: block;
+      min-height: 20px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      font-size:14px;
+    }
+
+    ul
+    {
+      list-style-type: none;
+    }
+
+    input[type=radio], input[type=checkbox] {
+      display: none;
+    }
+
+    .radio input[type="radio"], .radio-inline input[type="radio"], .checkbox input[type="checkbox"], .checkbox-inline input[type="checkbox"] {
+      float: left;
+      margin-left: -20px;
+    }
+
+    .radio label, .checkbox label {
+      display: inline;
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    label {
+      display: inline-block;
+      cursor: pointer;
+      position: relative;
+      padding-left: 25px;
+      margin-right: 15px;
+      font-size: 13px;
+    }
+
+    .radio label:before {
+      border-radius: 8px;
+    }
+
+    label:before {
+      content: "";
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-right: 10px;
+      position: absolute;
+      left: 0;
+      bottom: 1px;
+      background-color: #fff;
+      border: 1px solid #b9b9b9;
+    }
+
+    input[type=radio]:checked + label:before {
+      content: "\2022";
+      color: #333;
+      font-size: 24px;
+      text-align: center;
+      line-height: 11px;
+    }
+
+    *:before, *:after {
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+
+
+    @font-face {
+      font-family: 'Segoe Regular';
+      src: url('./assets/fonts/segoe_ui.eot?-ldguj1');
+      src: url('./assets/fonts/segoe_ui.eot?#iefix-ldguj1') format('embedded-opentype'), url('./assets/fonts/segoe_ui.woff?-ldguj1') format('woff'), url('./assets/fonts/segoe_ui.ttf?-ldguj1') format('truetype'), url('./assets/fonts/segoe_ui.svg?-ldguj1#segoe_ui') format('svg');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /*@font-face {
+      font-family: 'Segoe Bold';
+      src: url('./assets/fonts/segoe_ui_bold.eot?-ldguj1');
+      src: url('./assets/fonts/segoe_ui_bold.eot?#iefix-ldguj1') format('embedded-opentype'), url('../assets/fonts/segoe_ui_bold.woff?-ldguj1') format('woff'), url('../assets/fonts/segoe_ui_bold.ttf?-ldguj1') format('truetype'), url('../assets/fonts/segoe_ui_bold.svg?-ldguj1#segoe_ui_bold') format('svg');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Segoe Light';
+      src: url('./assets/fonts/segoe_ui_light.eot?-ldguj1');
+      src: url('./assets/fonts/segoe_ui_light.eot?#iefix-ldguj1') format('embedded-opentype'), url('../assets/fonts/segoe_ui_light.woff?-ldguj1') format('woff'), url('../assets/fonts/segoe_ui_light.ttf?-ldguj1') format('truetype'), url('../assets/fonts/segoe_ui_light.svg?-ldguj1#segoe_ui_light') format('svg');
+      font-weight: normal;
+      font-style: normal;
+    }*/
+    .cartodb-tooltip-content-wrapper {
+      display:none;
+    }
+
+    #flyout {
+      position: fixed;
+      width: 500px;
+      color: #000;
+      top: 0;
+      left:100px;
+      z-index: 40;
+      font-family: Roboto,Arial,sans-serif;
+      display:none;
+    }
+
+    #flyoutTop {
+      background: #FFF;
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    #flyoutBottom {
+      display: block;
+      height: 0;
+      width: 0;
+      border-left: 35px #04364F solid;
+      border-bottom: 19px solid rgba(255,255,255,0);
+      position: relative;
+      right: -216px;
+    }
+
+    #flyoutDetails {
+      font-size: 10px;
+    }
+
+    #flyoutHeader {
+      background-color: #000;
+      color: #fff;
+      width: 100%;
+    }
+
+    #flyout h4 {
+      text-transform: uppercase;
+      font-size: 9px;
+    }
+
+    #flyout .left {
+      display: inline-block;
+      width: 50%;
+    }
+
+    #flyout .right {
+      display: inline-block;
+      text-align: right;
+      width: 48%;
+    }
+
+    #flyout .left, #flyout .right {
+      padding: 7px;
+      box-sizing: border-box;
+    }
+
+    . headerText {
+      font-size:20px;
+    }
+
+  .party, .gender, .worker, .need, .race {
+    display:inline-block;
+    padding: 0 0 7px 0;
+  }
+
+  #flyout .category {
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 12px;
+    max-height: 14px;
+  }
+
+  .value {
+    font-size: 12px;
+    color: #050505;
+    font-weight: 300;
+  }
+
+  .section {
+    padding: 12px 0;
+    border-bottom: 1px solid #E0DDDD;
+  }
+
+  .title {
+    color: #A09F9F;
+    text-transform: uppercase;
+    font-size: 13px;
+  }
+
+  .raceBox {
+    height: 28px;
+    width: 28px;
+    float: left;
+    margin-right: 8px;
+  }
+
+  </style>
+    <div class="map" id="map"></div>
+
+    <div class="sidepanel">
+      <div class="wrapper">
+      <h2>Voters Map</h2>
+
+      <div class="fsm mbm">View by:</div>
+      <ul class="list-unstyled">
+        <li>
+          <div class="radio pln">
+            <input type="radio" name="optionsRadios" id="politicalParty" value="0" checked>
+            <label for="politicalParty">Political Party</label>
+          </div>
+        </li>
+        <li>
+          <div class="radio pln">
+            
+              <input type="radio" name="optionsRadios" id="averageAge" value="1">
+            <label for="averageAge">Average Age</label>
+          </div>
+        </li>
+        <li>
+          <div class="radio pln">
+            <input type="radio" name="optionsRadios" id="gender" value="2">
+            <label for="gender">Gender</label>
+          </div>
+        </li>
+        <li>
+          <div class="radio pln">
+            <input type="radio" name="optionsRadios" id="race" value="3">
+            <label for="race">Race</label>
+          </div>
+        </li>
+        <li>
+          <div class="radio pln">
+            <input type="radio" name="optionsRadios" id="pollWorkers" value="4">
+            <label for="pollWorkers">Interested in Poll Workers</label>
+          </div>
+        </li>
+        <li>
+          <div class="radio pln">
+            <input type="radio" name="optionsRadios" id="needAssistance" value="5">
+            <label for="needAssistance">Need Assistance</label>
+          </div>
+        </li>
+      </ul>
+      <!--   <div class="context footer">
+          <p>Create your maps with ease using <a href="http://cartodb.com">CartoDB</a></p></p>
+        </div> -->
+      </div>
+    </div>
+    <div id="flyout" style="">
+      <div id="flyoutTop">
+          <div id="flyoutHeader">
+            <div class="left">
+              <h4>Precinct</h4>
+              <div class = "headerText precinct">1008</div>
+            </div>
+            <div class="right">
+              <h4>Registered Voters</h4>
+              <div class = "headerText voters">2378</div>
+            </div>
+          </div>
+          <div id="parties" class="section">
+          </div>
+          <div id="genders" class="section">
+          </div>
+          <div id="races" class="section">
+          </div>          
+          <div id="workers" class="section">
+          </div>
+          <div id="needs" class="section">
+          </div>
+            
+          </div>
+      </div>
+    </div>
+    <script src="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.15/cartodb.js"></script>
+    <!--Change the URL below in order to change the map that is being shown.
+    Go to your map in CartoDB, click on share, and copy the URL undert the API section
+    Check the cartodb.js documentation for more info
+    http://developers.cartodb.com/documentation/cartodb-js.html-->
+    <script type="text/javascript">
+
+    var subLayers, currentLayer;
+
+    var map = new L.Map('map', { 
+      center: [32.76937785675164, -96.8],
+      zoom: 10
+    });
+
+    L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+    }).addTo(map);
+
+    var layerUrl = 'https://team.cartodb.com/u/chriswhong/api/v2/viz/a488c60c-2675-11e5-9f9f-0e018d66dc29/viz.json';
+
+    cartodb.createLayer(map, layerUrl, {})
+      .addTo(map)
+      .on('done', function(layer) {
+
+        layer.on('featureOver', function(e, latlng, pos, data) {
+          getDetails(data.pct);
+          $('#flyout').fadeIn(150);
+        })
+
+        layer.on('featureOut', function() {
+          $('#flyout').fadeOut(150);
+        })
+
+        subLayers = layer.getSubLayers();
+        subLayers.forEach(function(subLayer) {
+          subLayer.hide();
+        })
+        subLayers[0].show();
+        currentLayer = 0;
+      }).on('error', function() {
+        //log the error
+      });
+
+     $("input[name='optionsRadios']").change(function(){
+       var i = $(this).val();
+
+       subLayers[currentLayer].hide();
+       subLayers[i].show();
+       currentLayer = i;
+
+     });
+
+     function getDetails(precinct) {
+        var sql = new cartodb.SQL({ user: 'chriswhong' });
+        var query = "SELECT '{{precinct}}' precinct, Count(*) AS voters, (SELECT Array_to_json(Array_agg(Row_to_json(a))) parties FROM (SELECT registered_party, Count(*) AS num FROM chriswhong.votermap_data WHERE precinct = '{{precinct}}' GROUP BY registered_party) a), (SELECT Array_to_json(Array_agg(Row_to_json(a))) genders FROM (SELECT gender, Count(*) AS num FROM chriswhong.votermap_data WHERE precinct = '{{precinct}}' GROUP BY gender) a), (SELECT Array_to_json(Array_agg(Row_to_json(a))) races FROM (SELECT race, Count(*) AS num FROM chriswhong.votermap_data WHERE precinct = '{{precinct}}' GROUP BY race) a), (SELECT Array_to_json(Array_agg(Row_to_json(a))) workers FROM (SELECT interested_in_poll_worker, Count(*) AS num FROM chriswhong.votermap_data WHERE precinct = '{{precinct}}' GROUP BY interested_in_poll_worker) a), (SELECT Array_to_json(Array_agg(Row_to_json(a))) needs FROM (SELECT need_assistance_at_pols, Count(*) AS num FROM chriswhong.votermap_data WHERE precinct = '{{precinct}}' GROUP BY need_assistance_at_pols) a) FROM chriswhong.votermap_data WHERE precinct = '{{precinct}}' ";
+        sql.execute(query, { precinct: precinct })
+          .done(function(data) {
+            var d = data.rows[0];
+            loadFlyout(d);
+            
+
+          })
+     }
+
+     function loadFlyout(d) {
+        console.log(d);
+
+        if(d.voters>0) {
+          $('.precinct').text(d.precinct);
+          $('.voters').text(d.voters);
+
+          $('#parties').empty();
+          d.parties.forEach(function(party) {
+
+            var template = Mustache.render("<div class='party' style = 'width:{{width}};border-bottom: 3px solid {{color}}'><div class='category'>{{party}}</div><div class='value'>{{num}} [{{percent}}%]</div></div>",{
+                width:Math.round(party.num/d.voters * 100)+'%',
+                party:function() {
+                  return (party.registered_party == '') ? "No Party" : party.registered_party;
+                },
+                num:party.num,
+                percent:Math.round(party.num/d.voters * 100),
+                color: function() {
+                  switch (party.registered_party) {
+                    case 'Democrat':
+                      return '#1e5cdb';
+                      break;
+                    case 'Republican':
+                      return '#cb2020';
+                      break;
+                    case 'Independent':
+                      return 'green';
+                      break;
+                    case '':
+                      return 'gray';
+                      break;
+                  }
+                }
+              });
+
+            $('#parties').append(template);
+          });
+
+          $('#genders').empty();
+          d.genders.forEach(function(gender) {
+
+            var template = Mustache.render("<div class='gender' style = 'width:{{width}};border-bottom: 3px solid {{color}}'><div class='category'>{{gender}}</div><div class='value'>{{num}} [{{percent}}%]</div></div>",{
+                width:Math.round(gender.num/d.voters * 100)+'%',
+                gender:gender.gender,
+                num:gender.num,
+                percent:Math.round(gender.num/d.voters * 100),
+                color: function() {
+                  switch (gender.gender) {
+                    case 'Male':
+                      return '#2ccecc';
+                      break;
+                    case 'Female':
+                      return '#cb2020';
+                      break;
+                  }
+                }
+              });
+
+            $('#genders').append(template);
+          });
+
+          $('#races').empty();
+          d.races.forEach(function(race) {
+
+            var template = Mustache.render("<div class='race' style = 'width:{{width}};'><div class='raceBox' style='background:{{color}}'></div><div class='category'>{{race}}</div><div class='value'>{{num}} [{{percent}}%]</div></div>",{
+                width:100/d.races.length+'%',
+                race:race.race,
+                num:race.num,
+                percent:Math.round(race.num/d.voters * 100),
+                color: function() {
+                  switch (race.race) {
+                    case 'Caucasian':
+                      return '#ffa800';
+                      break;
+                    case 'African American':
+                      return '#53c500';
+                      break;
+                    case 'Hispano/Latino':
+                      return '#53c500';
+                      break;
+                    case 'Alaska Native':
+                      return '#53c500';
+                      break;
+                    case 'American indian':
+                      return '#53c500';
+                      break;
+                    case 'Other':
+                      return '#53c500';
+                      break;
+                    case 'Other Pacific Islander':
+                      return '#53c500';
+                      break;
+                    case 'Native Hawauuab':
+                      return '#53c500';
+                      break;
+                    case 'Asian':
+                      return '#53c500';
+                      break;
+                  }
+                }
+              });
+
+            $('#races').append(template);
+          });
+
+
+          $('#workers').empty().append('<div class="title">Interested in Poll Workers</div>');
+
+          d.workers.forEach(function(worker) {
+
+            var template = Mustache.render("<div class='worker' style = 'width:{{width}};border-bottom: 3px solid {{color}}'><div class='category'>{{worker}}</div><div class='value'>{{num}} [{{percent}}%]</div></div>",{
+                width:Math.round(worker.num/d.voters * 100)+'%',
+                worker: function() {
+                  return worker.interested_in_poll_worker ? 'Yes' : 'No';
+                },
+                num:gender.num,
+                percent:Math.round(worker.num/d.voters * 100),
+                color: function() {
+                  switch (worker.interested_in_poll_worker) {
+                    case true:
+                      return '#1e5cdb';
+                      break;
+                    case false:
+                      return '#cb2020';
+                      break;
+                  }
+                }
+              });
+
+            $('#workers').append(template);
+          });
+
+          $('#needs').empty().append('<div class="title">Need Assistance</div>');
+          d.needs.forEach(function(need) {
+
+            var template = Mustache.render("<div class='need' style = 'width:{{width}};border-bottom: 3px solid {{color}}'><div class='category'>{{need}}</div><div class='value'>{{num}} [{{percent}}%]</div></div>",{
+                width:Math.round(need.num/d.voters * 100)+'%',
+                need:function() {
+                  return need.need_assistance_at_pols ? 'Yes' : 'No';
+                },
+                num:need.num,
+                percent:Math.round(need.num/d.voters * 100),
+                color: function() {
+                  switch (gender.gender) {
+                    case true:
+                      return '#1e5cdb';
+                      break;
+                    case false:
+                      return '#cb2020';
+                      break;
+                  }
+                }
+              });
+
+            $('#needs').append(template);
+          });
+
+        }
+     }
+    //make the flyout follow the mouse
+    $('#map').mousemove(function(e) {
+
+      $('#flyout').css({
+        'left': e.clientX + 20,
+        'top': e.clientY + 20
+      });
+    });
+    </script>
+
+  </body>
+      </html>
